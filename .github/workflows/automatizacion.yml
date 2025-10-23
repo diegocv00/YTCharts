@@ -2,14 +2,14 @@ name: Automatizar scripts de artistas
 
 on:
   schedule:
-    - cron: "30 14 * * *"   # 9:30 AM hora Colombia
+    - cron: "0 21 * * 4"   # Todos los jueves a las 4:00 PM hora Colombia (21:00 UTC)
   workflow_dispatch:
 
 jobs:
   ejecutar-scripts:
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # 👈 NECESARIO para hacer git push
+      contents: write
 
     steps:
       - name: 📥 Clonar repositorio
@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
+
       - name: 📦 Instalar dependencias
         run: |
           python -m pip install --upgrade pip
@@ -29,7 +29,6 @@ jobs:
       - name: 🔢 Crear carpeta incremental para PDFs
         id: crear_carpeta
         run: |
-          # Buscar el número más alto existente
           last_num=$(ls -d pdf_artistas* 2>/dev/null | grep -Eo '[0-9]+' | sort -n | tail -1)
           if [ -z "$last_num" ]; then
             next_num=1
@@ -40,8 +39,6 @@ jobs:
           folder_name="pdf_artistas${next_num}"
           mkdir -p "$folder_name"
           echo "📁 Carpeta creada: $folder_name"
-
-          # Exportar como variable de entorno para otros pasos
           echo "FOLDER_NAME=$folder_name" >> $GITHUB_ENV
 
       - name: ▶️ Ejecutar extract_info_artists.py
