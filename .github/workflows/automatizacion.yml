@@ -49,8 +49,8 @@ jobs:
       - name: 📤 Subir PDFs generados
         uses: actions/upload-artifact@v4
         with:
-          name: pdfs_artistas
-          path: output_pdfs/
+          name: pdf_artistas
+          path: pdf_artistas/
 
       # 🔹 5. (Opcional) Hacer commit de los PDFs al repo
       - name: 🧾 Commit PDFs al repo
