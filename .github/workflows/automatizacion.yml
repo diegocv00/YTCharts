@@ -2,7 +2,7 @@ name: Automatizar scripts de artistas
 
 on:
   schedule:
-    -  cron: "30 14 * * *"   # 9:30 AM hora Colombia
+    - cron: "30 14 * * *"   # 9:30 AM hora Colombia
   workflow_dispatch:        # También permite lanzarlo manualmente
 
 jobs:
@@ -21,10 +21,11 @@ jobs:
       - name: 🔍 Verificar archivos en el repositorio
         run: ls -la
 
-      - name: 📦 Instalar dependencias
+      - name: 📦 Instalar dependencias sin requirements.txt
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pandas numpy matplotlib openpyxl jupyter notebook
+          pip install playwright
           playwright install --with-deps  # instala navegadores necesarios
 
       # 🔹 1. Primer script
