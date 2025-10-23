@@ -58,7 +58,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add output_pdfs/ || true
+          git add pdf_artistas/ || true
           git commit -m "📄 Actualizar PDFs de artistas" || echo "Sin cambios para commit"
           git push || echo "Sin permisos de push en este flujo"
 
