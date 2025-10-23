@@ -3,11 +3,13 @@ name: Automatizar scripts de artistas
 on:
   schedule:
     - cron: "30 14 * * *"   # 9:30 AM hora Colombia
-  workflow_dispatch:        # También permite lanzarlo manualmente
+  workflow_dispatch:
 
 jobs:
   ejecutar-scripts:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write    # 👈 NECESARIO para poder hacer git push
 
     steps:
       - name: 📥 Clonar repositorio
@@ -27,42 +29,36 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps
 
-      # 🔹 1. Primer script
       - name: ▶️ Ejecutar extract_info_artists.py
         run: |
           echo "Ejecutando extract_info_artists.py..."
           python extract_info_artists.py
 
-      # 🔹 2. Segundo script
       - name: ▶️ Ejecutar extract_info_per_artist.py
         run: |
           echo "Ejecutando extract_info_per_artist.py..."
           python extract_info_per_artist.py
 
-      # 🔹 3. Tercer script (plotting)
       - name: 📊 Ejecutar plotting_info_artist.py
         run: |
           echo "Ejecutando plotting_info_artist.py..."
           python plotting_info_artist.py
 
-      # 🔹 4. Subir PDFs generados como artefacto
-      - name: 📤 Subir PDFs generados
+      - name: 📤 Subir PDFs como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: pdf_artistas
           path: pdf_artistas/
 
-      # 🔹 5. (Opcional) Hacer commit de los PDFs al repo
       - name: 🧾 Commit PDFs al repo
-        if: success()   # solo si todo salió bien
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pdf_artistas/ || true
           git commit -m "📄 Actualizar PDFs de artistas" || echo "Sin cambios para commit"
-          git push || echo "Sin permisos de push en este flujo"
+          git push || echo "⚠️ No se pudo hacer push (sin permisos o repo fork)"
 
-      # 🔹 6. Subir todos los resultados (Excel, CSV, PNG, etc.)
       - name: 💾 Subir resultados generados
         uses: actions/upload-artifact@v4
         with:
