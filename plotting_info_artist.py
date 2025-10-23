@@ -49,6 +49,7 @@ for artista, hojas in artistas.items():
                 df_visitas["Año"] = df_visitas["Fecha"].dt.year
 
                 sns.lineplot(data=df_visitas, x="Dia_Mes", y="Visitas")
+                plt.title(f"Visitas Diarias - {artista}")
                 plt.xlabel(f"Año ({df_visitas['Año'].iloc[0]})")
                 plt.xticks(rotation=45)
                 plt.tight_layout()
@@ -67,6 +68,7 @@ for artista, hojas in artistas.items():
                 )
                 df_ciudades.rename(columns={"Visitas": "Visitas(en millones)"}, inplace=True)
                 sns.barplot(data=df_ciudades, x="Ciudad", y="Visitas(en millones)", hue="Ciudad")
+                plt.title(f"Top 10 Ciudades - {artista}")
                 plt.xticks(rotation=45)
                 plt.tight_layout()
                 pdf.savefig()
@@ -82,6 +84,7 @@ for artista, hojas in artistas.items():
                     .apply(pd.eval)
                 )
                 sns.barplot(data=df_canciones, y="Canción", x="Visitas", hue="Canción", legend=False)
+                plt.title(f"Top 10 Canciones - {artista}")
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()

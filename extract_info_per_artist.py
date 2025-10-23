@@ -3,19 +3,18 @@ import pandas as pd
 import re
 import time
 
-# Función para nombres válidos de hoja
 def safe_sheet_name(base, suffix):
     # Quitar caracteres inválidos para Excel
-    name = re.sub(r'[\\/*?:\[\]]', '', base)
-    # Agregar sufijo y cortar a 31 caracteres
+    name = re.sub(r'[\\/*?:\[\]]', '', base).strip()[:14]  # solo primeros 14 caracteres
+
     full_name = f"{name}_{suffix}"
-    return full_name[:31]
+    return full_name
 
 # Leer CSV con artistas y URLs
 df = pd.read_csv("top_colombia_weekly_artists.csv")
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+    browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
     page = browser.new_page()
 
     # Crear archivo Excel
