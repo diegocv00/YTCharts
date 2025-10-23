@@ -10,7 +10,7 @@ def safe_sheet_name(base, suffix):
     name = re.sub(r'[\\/*?:\[\]]', '', base).strip()[:15]
     return f"{name}_{suffix}"
 
-# ✅ Permitir que la carpeta de salida sea pasada como argumento
+# Permitir que la carpeta de salida sea pasada como argumento
 output_folder = sys.argv[1] if len(sys.argv) > 1 else "pdf_artistas"
 os.makedirs(output_folder, exist_ok=True)
 
@@ -34,7 +34,7 @@ for artista, hojas in artistas.items():
                 print(f"⚠️ Saltando {artista}: datos incompletos")
                 continue
 
-            # ✅ Guardar PDFs en la carpeta de salida dinámica
+            # Guardar PDFs en la carpeta de salida 
             pdf_path = os.path.join(output_folder, f"{artista.replace('/', '_')}.pdf")
             with PdfPages(pdf_path) as pdf:
                 # --- Gráfico 1: Visitas ---
@@ -86,10 +86,11 @@ for artista, hojas in artistas.items():
                 pdf.savefig()
                 plt.close()
 
-            print(f"✅ PDF creado: {pdf_path}")
+            print(f"PDF creado: {pdf_path}")
         except Exception as e:
-            print(f"⚠️ Error con artista {artista}: {e}")
+            print(f"Error con artista {artista}: {e}")
     else:
-        print(f"⚠️ Saltando {artista}: faltan hojas completas")
+        print(f"Saltando {artista}: faltan hojas completas")
 
-print("✅ Todos los PDFs generados.")
+print("Todos los PDFs generados.")
+
