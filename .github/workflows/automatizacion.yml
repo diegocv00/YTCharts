@@ -2,7 +2,7 @@ name: Automatizar scripts de artistas
 
 on:
   schedule:
-    - cron: "0 21 * * 4"   # Todos los jueves a las 4:00 PM hora Colombia (21:00 UTC)
+    - cron: "30 21 * * 4"   # Todos los jueves a las 4:00 PM hora Colombia (21:00 UTC)
   workflow_dispatch:
 
 jobs:
