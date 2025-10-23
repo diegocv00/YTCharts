@@ -1,0 +1,54 @@
+name: Automatizar scripts de artistas
+
+on:
+  schedule:
+    -  cron: "30 14 * * *"   # 9:30 AM hora Colombia
+  workflow_dispatch:        # También permite lanzarlo manualmente
+
+jobs:
+  ejecutar-scripts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install --with-deps  # instala navegadores necesarios
+
+      # 🔹 1. Primer script
+      - name: ▶️ Ejecutar extract_info_artists.py
+        run: |
+          echo "Ejecutando extract_info_artists.py..."
+          python extract_info_artists.py
+
+      # 🔹 2. Segundo script
+      - name: ▶️ Ejecutar extract_info_per_artist.py
+        run: |
+          echo "Ejecutando extract_info_per_artist.py..."
+          python extract_info_per_artist.py
+
+      # 🔹 3. Notebook
+      - name: 📊 Ejecutar plotting_info_artist.ipynb
+        run: |
+          echo "Ejecutando plotting_info_artist.ipynb..."
+          jupyter nbconvert --to notebook --execute plotting_info_artist.ipynb --output plotting_info_artist_output.ipynb
+
+      # 📦 Guardar resultados como artefactos descargables
+      - name: 💾 Subir resultados generados
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados
+          path: |
+            *.xlsx
+            *.csv
+            *.png
+            plotting_info_artist_output.ipynb
