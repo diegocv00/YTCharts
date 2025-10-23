@@ -4,25 +4,21 @@ import re
 import time
 
 def safe_sheet_name(base, suffix):
-    # Quitar caracteres inválidos para Excel
     name = re.sub(r'[\\/*?:\[\]]', '', base).strip()[:14]
-    full_name = f"{name}_{suffix}"
-    return full_name
-
-
+    return f"{name}_{suffix}"
 
 def limpiar_texto_vistas(texto):
-    """Elimina las palabras 'views', 'vistas', 'visualizaciones' y espacios."""
+    """Limpia textos como '7.5M views', '7.5M vistas', '7.5M visualizaciones'."""
     return (
         texto.replace("views", "")
+             .replace("view", "")
              .replace("vistas", "")
              .replace("visualizaciones", "")
              .replace("visualization", "")
+             .replace("visualizations", "")
              .strip()
     )
 
-
-# Leer CSV con artistas y URLs
 df = pd.read_csv("top_colombia_weekly_artists.csv")
 
 with sync_playwright() as p:
@@ -32,11 +28,9 @@ with sync_playwright() as p:
         timezone_id="America/Bogota",
         geolocation={"latitude": 4.711, "longitude": -74.0721},
         permissions=["geolocation"],
-        extra_http_headers={
-            "Accept-Language": "es-ES,es;q=0.9"
-        }
+        extra_http_headers={"Accept-Language": "es-ES,es;q=0.9"},
     )
-    page = browser.new_page()
+    page = context.new_page()  # ✅ usar el contexto, no el navegador base
 
     with pd.ExcelWriter("top10_artistas_detalle.xlsx", engine="xlsxwriter") as writer:
         for index, row in df.head(10).iterrows():
@@ -49,9 +43,7 @@ with sync_playwright() as p:
                 page.wait_for_load_state("networkidle", timeout=15000)
                 time.sleep(5)
 
-                # ====================
-                # 1) Visitas diarias
-                # ====================
+                # --- 1) Visitas diarias ---
                 try:
                     page.wait_for_selector('ytmc-views-card-v2', timeout=10000)
                     oyentes = page.query_selector('ytmc-views-card-v2')
@@ -61,15 +53,12 @@ with sync_playwright() as p:
                         datos_visitas = re.findall(patron_fechas, texto)[1:]
                         df_visitas = pd.DataFrame(datos_visitas, columns=["Fecha", "Visitas"])
                     else:
-                        print("⚠️ No se encontró bloque de visitas")
                         df_visitas = pd.DataFrame(columns=["Fecha", "Visitas"])
                 except Exception as e:
                     print(f"⚠️ Error al extraer visitas: {e}")
                     df_visitas = pd.DataFrame(columns=["Fecha", "Visitas"])
 
-                # ====================
-                # 2) Top 10 ciudades
-                # ====================
+                # --- 2) Top ciudades ---
                 try:
                     page.wait_for_selector('.entityTitleForInsightsPageLocationEntity', timeout=8000)
                     ciudades = page.query_selector_all('.entityTitleForInsightsPageLocationEntity')
@@ -84,9 +73,7 @@ with sync_playwright() as p:
                     print(f"⚠️ Error al extraer ciudades: {e}")
                     df_ciudades = pd.DataFrame(columns=["Ciudad", "Visitas"])
 
-                # ====================
-                # 3) Top 10 canciones
-                # ====================
+                # --- 3) Top canciones ---
                 try:
                     page.wait_for_selector('img.thumbForInsightsPageSongEntity', timeout=8000)
                     canciones = page.query_selector_all('img.thumbForInsightsPageSongEntity')
@@ -101,20 +88,16 @@ with sync_playwright() as p:
                     print(f"⚠️ Error al extraer canciones: {e}")
                     df_canciones = pd.DataFrame(columns=["Canción", "Visitas"])
 
-                # ====================
-                # Guardar en Excel
-                # ====================
+                # --- Guardar ---
                 df_visitas.to_excel(writer, sheet_name=safe_sheet_name(artista, "visitas"), index=False)
                 df_ciudades.to_excel(writer, sheet_name=safe_sheet_name(artista, "ciudades"), index=False)
                 df_canciones.to_excel(writer, sheet_name=safe_sheet_name(artista, "canciones"), index=False)
 
                 print(f"✅ Datos guardados para {artista}")
                 time.sleep(2)
-
             except Exception as e:
                 print(f"❌ Error al procesar {artista}: {e}")
 
     browser.close()
 
 print("\n✅ Archivo 'top10_artistas_detalle.xlsx' generado correctamente.")
-
