@@ -21,7 +21,7 @@ jobs:
       - name: 🔍 Verificar archivos en el repositorio
         run: ls -la
 
-      - name: 📦 Instalar dependencias sin requirements.txt
+      - name: 📦 Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
