@@ -3,13 +3,11 @@ name: Automatizar scripts de artistas
 on:
   schedule:
     - cron: "30 14 * * *"   # 9:30 AM hora Colombia
-  workflow_dispatch:
+  workflow_dispatch:        # También permite lanzarlo manualmente
 
 jobs:
   ejecutar-scripts:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write    # 👈 NECESARIO para poder hacer git push
 
     steps:
       - name: 📥 Clonar repositorio
@@ -19,9 +17,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
-      - name: 🔍 Verificar archivos en el repositorio
-        run: ls -la
 
       - name: 📦 Instalar dependencias
         run: |
@@ -29,39 +24,55 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps
 
+      # 🔹 1. Primer script
       - name: ▶️ Ejecutar extract_info_artists.py
         run: |
           echo "Ejecutando extract_info_artists.py..."
           python extract_info_artists.py
 
+      # 🔹 2. Segundo script
       - name: ▶️ Ejecutar extract_info_per_artist.py
         run: |
           echo "Ejecutando extract_info_per_artist.py..."
           python extract_info_per_artist.py
 
+      # 🔹 3. Tercer script (plotting)
       - name: 📊 Ejecutar plotting_info_artist.py
         run: |
           echo "Ejecutando plotting_info_artist.py..."
-          mkdir -p "pdf_artistas_${{ github.run_number }}"
-          python plotting_info_artist.py "pdf_artistas_${{ github.run_number }}"
+          # Buscar el último número de carpeta existente
+          last_num=$(ls -d pdf_artistas* 2>/dev/null | grep -Eo '[0-9]+' | sort -n | tail -1)
+          if [ -z "$last_num" ]; then
+            next_num=1
+          else
+            next_num=$((last_num + 1))
+          fi
+          folder_name="pdf_artistas${next_num}"
+          echo "📁 Creando carpeta: $folder_name"
+          mkdir -p "$folder_name"
+          python plotting_info_artist.py "$folder_name"
 
+          # Guardar el nombre de la carpeta para pasos posteriores
+          echo "FOLDER_NAME=$folder_name" >> $GITHUB_ENV
 
-      - name: 📤 Subir PDFs como artefacto
+      # 🔹 4. Subir PDFs generados como artefacto
+      - name: 📤 Subir PDFs generados
         uses: actions/upload-artifact@v4
         with:
-          name: pdf_artistas_${{ github.run_number }}
-          path: pdf_artistas_${{ github.run_number }}/
-      
+          name: ${{ env.FOLDER_NAME }}
+          path: ${{ env.FOLDER_NAME }}/
+
+      # 🔹 5. Hacer commit de los PDFs al repo
       - name: 🧾 Commit PDFs al repo
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "pdf_artistas_${{ github.run_number }}/" || true
-          git commit -m "📄 PDFs de artistas - ejecución #${{ github.run_number }}" || echo "Sin cambios"
-          git push || echo "⚠️ No se pudo hacer push"
+          git add "${{ env.FOLDER_NAME }}/" || true
+          git commit -m "📄 Agregar PDFs de artistas: ${{ env.FOLDER_NAME }}" || echo "Sin cambios para commit"
+          git push || echo "Sin permisos de push en este flujo"
 
-
+      # 🔹 6. Subir resultados generales (Excel, CSV, PNG, etc.)
       - name: 💾 Subir resultados generados
         uses: actions/upload-artifact@v4
         with:
