@@ -24,9 +24,8 @@ jobs:
       - name: 📦 Instalar dependencias sin requirements.txt
         run: |
           python -m pip install --upgrade pip
-          pip install pandas numpy matplotlib openpyxl jupyter notebook
-          pip install playwright
-          playwright install --with-deps  # instala navegadores necesarios
+          pip install -r requirements.txt
+          playwright install --with-deps
 
       # 🔹 1. Primer script
       - name: ▶️ Ejecutar extract_info_artists.py
