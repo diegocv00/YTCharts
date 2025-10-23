@@ -3,7 +3,6 @@ import pandas as pd
 import re
 import time
 
-
 def safe_sheet_name(base, suffix):
     # Quitar caracteres inválidos para Excel
     name = re.sub(r'[\\/*?:\[\]]', '', base).strip()[:14]
@@ -11,27 +10,24 @@ def safe_sheet_name(base, suffix):
     return full_name
 
 
+def limpiar_texto_vistas(texto):
+    """Elimina las palabras 'views', 'vistas', 'visualizaciones' y espacios."""
+    return (
+        texto.replace("views", "")
+             .replace("vistas", "")
+             .replace("visualizaciones", "")
+             .replace("visualization", "")
+             .strip()
+    )
+
+
 # Leer CSV con artistas y URLs
 df = pd.read_csv("top_colombia_weekly_artists.csv")
 
 with sync_playwright() as p:
-    # Lanzar navegador
     browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+    page = browser.new_page()
 
-    # 🌎 Crear contexto en español (clave para que YouTube no muestre "views")
-    context = browser.new_context(
-        locale="es-ES",
-        timezone_id="America/Bogota",
-        geolocation={"latitude": 4.711, "longitude": -74.0721},
-        permissions=["geolocation"],
-        extra_http_headers={
-            "Accept-Language": "es-ES,es;q=0.9"
-        }
-    )
-
-    page = context.new_page()
-
-    # Crear archivo Excel
     with pd.ExcelWriter("top10_artistas_detalle.xlsx", engine="xlsxwriter") as writer:
         for index, row in df.head(10).iterrows():
             artista = row["name"]
@@ -39,9 +35,9 @@ with sync_playwright() as p:
 
             print(f"\n🎵 Extrayendo datos de: {artista}")
             try:
-                page.goto(url, timeout=120000)  # más tiempo para cargar
+                page.goto(url, timeout=120000)
                 page.wait_for_load_state("networkidle", timeout=15000)
-                time.sleep(5)  # deja respirar a la página
+                time.sleep(5)
 
                 # ====================
                 # 1) Visitas diarias
@@ -71,8 +67,7 @@ with sync_playwright() as p:
                     lista_ciudades = []
                     for c, v in zip(ciudades, vistas_ciudades):
                         ciudad = c.inner_text().strip()
-                        # Eliminar "views" o "vistas" y espacios extra
-                        vistas = re.sub(r"\s*(views|vistas)\s*", "", v.inner_text()).strip()
+                        vistas = limpiar_texto_vistas(v.inner_text())
                         lista_ciudades.append([ciudad, vistas])
                     df_ciudades = pd.DataFrame(lista_ciudades[:10], columns=["Ciudad", "Visitas"])
                 except Exception as e:
@@ -89,8 +84,7 @@ with sync_playwright() as p:
                     lista_canciones = []
                     for c, v in zip(canciones, vistas_canciones):
                         nombre = c.get_attribute('aria-label') or "Desconocida"
-                        # Eliminar "views" o "vistas"
-                        vistas = re.sub(r"\s*(views|vistas)\s*", "", v.inner_text()).strip()
+                        vistas = limpiar_texto_vistas(v.inner_text())
                         lista_canciones.append([nombre.strip(), vistas])
                     df_canciones = pd.DataFrame(lista_canciones[:10], columns=["Canción", "Visitas"])
                 except Exception as e:
@@ -110,7 +104,6 @@ with sync_playwright() as p:
             except Exception as e:
                 print(f"❌ Error al procesar {artista}: {e}")
 
-    context.close()
     browser.close()
 
 print("\n✅ Archivo 'top10_artistas_detalle.xlsx' generado correctamente.")
