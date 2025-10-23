@@ -1,4 +1,5 @@
 import os
+import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
@@ -9,9 +10,12 @@ def safe_sheet_name(base, suffix):
     name = re.sub(r'[\\/*?:\[\]]', '', base).strip()[:15]
     return f"{name}_{suffix}"
 
+# ✅ Permitir que la carpeta de salida sea pasada como argumento
+output_folder = sys.argv[1] if len(sys.argv) > 1 else "pdf_artistas"
+os.makedirs(output_folder, exist_ok=True)
+
 archivo = "top10_artistas_detalle.xlsx"
 xls = pd.ExcelFile(archivo)
-os.makedirs("pdf_artistas", exist_ok=True)
 
 artistas = {}
 for sheet in xls.sheet_names:
@@ -30,7 +34,8 @@ for artista, hojas in artistas.items():
                 print(f"⚠️ Saltando {artista}: datos incompletos")
                 continue
 
-            pdf_path = os.path.join("pdf_artistas", f"{artista.replace('/', '_')}.pdf")
+            # ✅ Guardar PDFs en la carpeta de salida dinámica
+            pdf_path = os.path.join(output_folder, f"{artista.replace('/', '_')}.pdf")
             with PdfPages(pdf_path) as pdf:
                 # --- Gráfico 1: Visitas ---
                 plt.figure(figsize=(20, 10))
