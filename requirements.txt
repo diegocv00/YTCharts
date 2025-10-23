@@ -6,3 +6,4 @@ xlsxwriter
 jupyter
 notebook
 playwright
+seaborn
