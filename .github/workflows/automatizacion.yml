@@ -39,11 +39,11 @@ jobs:
           echo "Ejecutando extract_info_per_artist.py..."
           python extract_info_per_artist.py
 
-      # 🔹 3. Notebook
-      - name: 📊 Ejecutar plotting_info_artist.ipynb
+      # 🔹 3. Script de plotting (ya no notebook)
+      - name: 📊 Ejecutar plotting_info_artist.py
         run: |
-          echo "Ejecutando plotting_info_artist.ipynb..."
-          jupyter nbconvert --to notebook --execute plotting_info_artist.ipynb --output plotting_info_artist_output.ipynb
+          echo "Ejecutando plotting_info_artist.py..."
+          python plotting_info_artist.py
 
       # 📦 Guardar resultados como artefactos descargables
       - name: 💾 Subir resultados generados
@@ -54,4 +54,4 @@ jobs:
             *.xlsx
             *.csv
             *.png
-            plotting_info_artist_output.ipynb
+            *.pdf
