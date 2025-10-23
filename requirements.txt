@@ -3,7 +3,5 @@ numpy
 matplotlib
 openpyxl
 xlsxwriter
-jupyter
-notebook
 playwright
 seaborn
