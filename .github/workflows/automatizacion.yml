@@ -39,13 +39,30 @@ jobs:
           echo "Ejecutando extract_info_per_artist.py..."
           python extract_info_per_artist.py
 
-      # 🔹 3. Script de plotting (ya no notebook)
+      # 🔹 3. Tercer script (plotting)
       - name: 📊 Ejecutar plotting_info_artist.py
         run: |
           echo "Ejecutando plotting_info_artist.py..."
           python plotting_info_artist.py
 
-      # 📦 Guardar resultados como artefactos descargables
+      # 🔹 4. Subir PDFs generados como artefacto
+      - name: 📤 Subir PDFs generados
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfs_artistas
+          path: output_pdfs/
+
+      # 🔹 5. (Opcional) Hacer commit de los PDFs al repo
+      - name: 🧾 Commit PDFs al repo
+        if: success()   # solo si todo salió bien
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output_pdfs/ || true
+          git commit -m "📄 Actualizar PDFs de artistas" || echo "Sin cambios para commit"
+          git push || echo "Sin permisos de push en este flujo"
+
+      # 🔹 6. Subir todos los resultados (Excel, CSV, PNG, etc.)
       - name: 💾 Subir resultados generados
         uses: actions/upload-artifact@v4
         with:
