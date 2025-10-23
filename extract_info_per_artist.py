@@ -10,6 +10,7 @@ def safe_sheet_name(base, suffix):
     return full_name
 
 
+
 def limpiar_texto_vistas(texto):
     """Elimina las palabras 'views', 'vistas', 'visualizaciones' y espacios."""
     return (
@@ -26,6 +27,15 @@ df = pd.read_csv("top_colombia_weekly_artists.csv")
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+    context = browser.new_context(
+        locale="es-ES",
+        timezone_id="America/Bogota",
+        geolocation={"latitude": 4.711, "longitude": -74.0721},
+        permissions=["geolocation"],
+        extra_http_headers={
+            "Accept-Language": "es-ES,es;q=0.9"
+        }
+    )
     page = browser.new_page()
 
     with pd.ExcelWriter("top10_artistas_detalle.xlsx", engine="xlsxwriter") as writer:
@@ -107,3 +117,4 @@ with sync_playwright() as p:
     browser.close()
 
 print("\n✅ Archivo 'top10_artistas_detalle.xlsx' generado correctamente.")
+
