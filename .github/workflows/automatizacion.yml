@@ -42,22 +42,25 @@ jobs:
       - name: 📊 Ejecutar plotting_info_artist.py
         run: |
           echo "Ejecutando plotting_info_artist.py..."
-          python plotting_info_artist.py
+          mkdir -p "pdf_artistas_${{ github.run_number }}"
+          python plotting_info_artist.py "pdf_artistas_${{ github.run_number }}"
+
 
       - name: 📤 Subir PDFs como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: pdf_artistas
-          path: pdf_artistas/
-
+          name: pdf_artistas_${{ github.run_number }}
+          path: pdf_artistas_${{ github.run_number }}/
+      
       - name: 🧾 Commit PDFs al repo
         if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pdf_artistas/ || true
-          git commit -m "📄 Actualizar PDFs de artistas" || echo "Sin cambios para commit"
-          git push || echo "⚠️ No se pudo hacer push (sin permisos o repo fork)"
+          git add "pdf_artistas_${{ github.run_number }}/" || true
+          git commit -m "📄 PDFs de artistas - ejecución #${{ github.run_number }}" || echo "Sin cambios"
+          git push || echo "⚠️ No se pudo hacer push"
+
 
       - name: 💾 Subir resultados generados
         uses: actions/upload-artifact@v4
