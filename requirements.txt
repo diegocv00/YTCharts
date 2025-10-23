@@ -1,6 +1,8 @@
 pandas
-seaborn
+numpy
 matplotlib
-playwright
+openpyxl
+xlsxwriter
 jupyter
-nbconvert
+notebook
+playwright
