@@ -8,7 +8,7 @@ def safe_sheet_name(base, suffix):
     return f"{name}_{suffix}"
 
 def limpiar_texto_vistas(texto):
-    """Limpia textos como '7.5M views', '7.5M vistas', '7.5M visualizaciones'."""
+    
     return (
         texto.replace("views", "")
              .replace("view", "")
@@ -30,7 +30,7 @@ with sync_playwright() as p:
         permissions=["geolocation"],
         extra_http_headers={"Accept-Language": "es-ES,es;q=0.9"},
     )
-    page = context.new_page()  # ✅ usar el contexto, no el navegador base
+    page = context.new_page()
 
     with pd.ExcelWriter("top10_artistas_detalle.xlsx", engine="xlsxwriter") as writer:
         for index, row in df.head(10).iterrows():
@@ -55,7 +55,7 @@ with sync_playwright() as p:
                     else:
                         df_visitas = pd.DataFrame(columns=["Fecha", "Visitas"])
                 except Exception as e:
-                    print(f"⚠️ Error al extraer visitas: {e}")
+                    print(f" Error al extraer visitas: {e}")
                     df_visitas = pd.DataFrame(columns=["Fecha", "Visitas"])
 
                 # --- 2) Top ciudades ---
@@ -70,7 +70,7 @@ with sync_playwright() as p:
                         lista_ciudades.append([ciudad, vistas])
                     df_ciudades = pd.DataFrame(lista_ciudades[:10], columns=["Ciudad", "Visitas"])
                 except Exception as e:
-                    print(f"⚠️ Error al extraer ciudades: {e}")
+                    print(f"Error al extraer ciudades: {e}")
                     df_ciudades = pd.DataFrame(columns=["Ciudad", "Visitas"])
 
                 # --- 3) Top canciones ---
@@ -85,7 +85,7 @@ with sync_playwright() as p:
                         lista_canciones.append([nombre.strip(), vistas])
                     df_canciones = pd.DataFrame(lista_canciones[:10], columns=["Canción", "Visitas"])
                 except Exception as e:
-                    print(f"⚠️ Error al extraer canciones: {e}")
+                    print(f"Error al extraer canciones: {e}")
                     df_canciones = pd.DataFrame(columns=["Canción", "Visitas"])
 
                 # --- Guardar ---
@@ -93,11 +93,12 @@ with sync_playwright() as p:
                 df_ciudades.to_excel(writer, sheet_name=safe_sheet_name(artista, "ciudades"), index=False)
                 df_canciones.to_excel(writer, sheet_name=safe_sheet_name(artista, "canciones"), index=False)
 
-                print(f"✅ Datos guardados para {artista}")
+                print(f"Datos guardados para {artista}")
                 time.sleep(2)
             except Exception as e:
-                print(f"❌ Error al procesar {artista}: {e}")
+                print(f"Error al procesar {artista}: {e}")
 
     browser.close()
 
-print("\n✅ Archivo 'top10_artistas_detalle.xlsx' generado correctamente.")
+print("\n Archivo 'top10_artistas_detalle.xlsx' generado correctamente.")
+
