@@ -37,25 +37,54 @@ for artista, hojas in artistas.items():
             # Guardar PDFs en la carpeta de salida 
             pdf_path = os.path.join(output_folder, f"{artista.replace('/', '_')}.pdf")
             with PdfPages(pdf_path) as pdf:
+                
                 # --- Gráfico 1: Visitas ---
-                plt.figure(figsize=(20, 10))
+                plt.figure(figsize=(20,10))
+
+                # Diccionario para traducir meses de Español a Inglés
+                meses_map = {
+                    'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 
+                    'may': 'May', 'jun': 'Jun', 'jul': 'Jul', 'ago': 'Aug', 
+                    'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+                }
+
+                # Función auxiliar para limpiar y traducir la fecha
+                def limpiar_fecha(fecha):
+                    if pd.isna(fecha): return fecha
+                    fecha = str(fecha).replace('.', '').lower() # Quitar puntos y pasar a minúsculas
+                    for mes_es, mes_en in meses_map.items():
+                        if mes_es in fecha:
+                            return fecha.replace(mes_es, mes_en)
+                    return fecha
+
+                # 1. Aplicar la traducción
+                df_visitas["Fecha_Str"] = df_visitas["Fecha"].apply(limpiar_fecha)
+
+                # 2. Convertir a datetime usando los meses en inglés
                 df_visitas["Fecha"] = pd.to_datetime(
-                    df_visitas["Fecha"].str.replace('.', '', regex=False),
-                    format="%d %b %Y", errors="coerce"
+                    df_visitas["Fecha_Str"], 
+                    format="%d %b %Y", 
+                    errors='coerce'
                 )
+                
+                # Verificar si hay datos válidos antes de graficar
                 df_visitas = df_visitas.dropna(subset=["Fecha"])
-                if df_visitas.empty:
-                    print(f"⚠️ Sin fechas válidas para {artista}")
-                    continue
-                df_visitas["Dia_Mes"] = df_visitas["Fecha"].dt.strftime("%d-%m")
-                df_visitas["Año"] = df_visitas["Fecha"].dt.year
-                sns.lineplot(data=df_visitas, x="Dia_Mes", y="Visitas")
-                plt.title(f"Visitas Diarias - {artista}")
-                plt.xlabel(f"Año ({df_visitas['Año'].iloc[0]})")
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                pdf.savefig()
-                plt.close()
+                
+                if not df_visitas.empty:
+                    # Ordenar por fecha para que la línea no salga garabateada
+                    df_visitas = df_visitas.sort_values("Fecha")
+                    
+                    df_visitas["Dia_Mes"] = df_visitas["Fecha"].dt.strftime("%d-%m")
+                    
+                    sns.lineplot(data=df_visitas, x="Dia_Mes", y="Visitas")
+                    plt.title(f"Visitas Diarias - {artista}")
+                    plt.xlabel("Fecha")
+                    plt.xticks(rotation=45)
+                    plt.tight_layout()
+                    pdf.savefig()
+                    plt.close()
+                else:
+                    print(f"⚠️ Aviso: No se pudieron procesar las fechas para {artista} (Gráfico de visitas vacío).")
 
                 # --- Gráfico 2: Ciudades ---
                 plt.figure(figsize=(16, 10))
@@ -93,4 +122,5 @@ for artista, hojas in artistas.items():
         print(f"Saltando {artista}: faltan hojas completas")
 
 print("Todos los PDFs generados.")
+
 
