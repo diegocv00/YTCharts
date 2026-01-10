@@ -71,7 +71,7 @@ for artista, hojas in artistas.items():
                 df_visitas = df_visitas.dropna(subset=["Fecha"])
                 
                 if not df_visitas.empty:
-                    # Ordenar por fecha para que la línea no salga garabateada
+                    # Ordenar por fecha 
                     df_visitas = df_visitas.sort_values("Fecha")
                     
                     df_visitas["Dia_Mes"] = df_visitas["Fecha"].dt.strftime("%d-%m")
@@ -122,5 +122,6 @@ for artista, hojas in artistas.items():
         print(f"Saltando {artista}: faltan hojas completas")
 
 print("Todos los PDFs generados.")
+
 
 
